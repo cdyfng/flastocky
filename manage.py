@@ -15,6 +15,7 @@ if os.path.exists('.env'):
 
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models_stock import Stock, Baseinfo
 from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
 
@@ -25,7 +26,8 @@ migrate = Migrate(app, db)
 
 def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
-                Permission=Permission, Post=Post, Comment=Comment)
+                Permission=Permission, Post=Post, Comment=Comment,
+                Stock=Stock, Baseinfo=Baseinfo)
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
@@ -77,5 +79,29 @@ def deploy():
     User.add_self_follows()
 
 
+@manager.command
+def crawler():
+    """Run backgroud stock crawler. """
+    from app.stock import stock_crawler_chn
+    #with app.app_context():
+    stock_crawler_chn.main()
+    #stock_crawler_chn.scrawler_ext()
+
+
+@manager.command
+def notify():
+    """Run Notify stock. """
+    from app.stock import stock_notify
+    stock_notify.remindPrice()
+
+
+@manager.command
+def baseinfo():
+    """Run baseinfo stock. """
+    from app.stock import stock_notify
+    stock_notify.get_all_baseinfo()
+
+
 if __name__ == '__main__':
     manager.run()
+    print 'run scrawler thread'
