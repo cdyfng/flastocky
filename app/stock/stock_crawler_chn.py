@@ -311,10 +311,7 @@ def read_code(file_name, prefix):
 
 def main():
     global PAGESIZE
-    code_list = []
-    code_list.extend(read_code('sz.list', 'sz'))
-    code_list.extend(read_code('sh.list', 'sh'))
-    #code_list.extend(read_code('my.list', 'sh'))
+    code_list = Baseinfo.get_stock_ids()
     print 'Get', len(code_list), 'stock id from lists'
 
     io_queue = Queue.Queue()
