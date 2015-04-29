@@ -9,6 +9,7 @@ import urllib2
 from sqlalchemy.exc import IntegrityError
 import warningEmail
 from ..models_stock import Baseinfo
+from ..models_stock import Stock as ModelStock
 from .. import db
 #stocks = {
 #    'sh600999': 0.02,
@@ -24,9 +25,9 @@ DATA_DIR = './data/air/'
 DB_NAME = 'chn.db'
 NOW_PRICE_SQL = "select timestamp, now_price, yesterday_closing_price from '_TABLENAME_' where  stock_id = '_STOCKID_'  order by id desc limit 1"
 
-class Stock(threading.Thread):
+class Stock(object):
     def __init__(self, stock_id, price_interval_percent, base_price, bench_price):
-        threading.Thread.__init__(self)
+        #threading.Thread.__init__(self)
         self.stock_id = stock_id
         self.price_interval_percent = price_interval_percent
         self.price_threshold_low = 0.0
@@ -36,11 +37,12 @@ class Stock(threading.Thread):
         self.is_stop = False
         pass
     def run(self):
-        while (not self.is_stop):
+        #while (not self.is_stop):
             if(not is_trade_time()):
                 print get_beijing_time().strftime('%H:%M:%S'), 'not trade time'
-                time.sleep(120)
-                continue
+                #time.sleep(120)
+                #continue
+                return
 
             try:
                 price,_ = self.getLastPrice()
@@ -83,7 +85,7 @@ class Stock(threading.Thread):
 
             #比较价格，大道要求则邮件提示
             print get_beijing_time().strftime('%H:%M:%S'), self.stock_id, price
-            time.sleep(10)
+            #time.sleep(10)
 
     def stop(self):
         print 'Try to stop', self.name, '...'
@@ -91,6 +93,12 @@ class Stock(threading.Thread):
 
 
     def getLastPrice(self):
+        s = ModelStock.query.filter_by(stock_id=self.stock_id)\
+            .order_by(ModelStock.timestamp.desc())\
+            .first()
+        return (s.now_price, s.yesterday_closing_price)
+
+    def getLastPriceOld(self):
         file_name = DATA_DIR + '/' + DB_NAME
         ensure_dir(file_name)
 
@@ -144,12 +152,13 @@ def get_beijing_time():
     return datetime.datetime.utcnow() + datetime.timedelta(hours =+ 8)
 
 def is_trade_time():
+    #return True
     current_beijing_hms = get_beijing_time().strftime('%H:%M:%S')
-    if current_beijing_hms < '08:40:00':
+    if current_beijing_hms < '08:55:00':
         return False
-    if current_beijing_hms > '11:50:00' and current_beijing_hms < '12:40:00':
+    if current_beijing_hms > '11:35:00' and current_beijing_hms < '12:55:00':
         return False
-    if current_beijing_hms > '15:20:00':
+    if current_beijing_hms > '15:05:00':
         return False
     return True
 
@@ -528,12 +537,18 @@ def read_code(file_name, prefix):
 def remindPrice():
     stocks = readStocks()
     print stocks
+    list = []
     for stock in stocks:
         #print stock[0], stock[1], stock[2]
-        t = Stock(stock[0], stock[1], stock[2], stock[5])
-        t.start()
+        list.append(Stock(stock[0], stock[1], stock[2], stock[5]))
+        #t.start()
 
-    print 'notify already start ...'
+    print 'notify start ...'
+    while True:
+        for item in list:
+            item.run()
+            time.sleep(60.0/len(list))
+
 
 def dailyStatAndRemind():
     ds = DailyStat()
