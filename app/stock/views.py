@@ -19,12 +19,18 @@ def main():
 
 @stock.route('/list')
 def list():
+    form = StockIdForm()
     baseinfos = Baseinfo.query.all()
+    if form.validate_on_submit():
+         stockid = form.stock_id.data
+         print stockid
+         return redirect(url_for('.baseinfo', stockid = stockid))
     #pagination = Baseinfo.query\
     #    .order_by(Baseinfo.timestamp.desc())\
     #    .paginate(1, per_page=20)
     #baseinfos = pagination.items
-    return render_template('stock/list.html',
+    return render_template('stock/list.html',\
+                           form=form, \
                            baseinfos = baseinfos)
 
 
