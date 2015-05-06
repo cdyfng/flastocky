@@ -1,22 +1,20 @@
-from flask import render_template
-from ..models_stock import Stock, Baseinfo
-from .. import db
+from flask import render_template, redirect, url_for
+#from ..models_stock import Stock, Baseinfo
+from ..models_stock import Baseinfo
+from .forms import StockIdForm
+#from .. import db
 from . import stock
 
 
-@stock.route('/')
-def stockid():
-    s = Stock(stock_id='sh600036',
-              timestamp='2014-01-24 00:33:33',
-              open_price = 12,
-              yesterday_closing_price = 12,
-              now_price = 11,
-              high_price = 11,
-              low_price = 11)
-    db.session.add(s)
-    db.session.commit()
-    #print db
-    return '<h1>add ok </h1>'
+@stock.route('/', methods=['GET', 'POST'])
+def main():
+    form = StockIdForm()
+    if form.validate_on_submit():
+        stockid = form.stock_id.data
+        print stockid
+        return redirect(url_for('.baseinfo', stockid = stockid))
+
+    return render_template('/stock/index.html', form=form)
 
 
 @stock.route('/list')
@@ -29,5 +27,24 @@ def list():
     return render_template('stock/list.html',
                            baseinfos = baseinfos)
 
+
+@stock.route('/<stockid>', methods=['Get', 'Post'])
+def baseinfo(stockid):
+    form = StockIdForm()
+    if form.validate_on_submit():
+         stockid = form.stock_id.data
+         print stockid
+         return redirect(url_for('.baseinfo', stockid = stockid))
+
+    baseinfos = []
+    try:
+        baseinfos = Baseinfo.query.filter_by(stock_id=stockid)\
+            .all()
+    except Exception as e:
+        print e
+    #return '<h1> ok </h1>'
+    return render_template('/stock/list.html', \
+                           form=form, \
+                           baseinfos=baseinfos)
 
 

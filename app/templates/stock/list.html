@@ -1,0 +1,64 @@
+{% extends "/stock/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Stock base info{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h3>所有股票基本面信息</h3>
+</div>
+<div>
+    {{ wtf.quick_form(form) }}
+</div>
+<div>
+<table class='table table-boardered table-striped'>
+	<thead>
+		<tr>
+			<th>代码</th>
+			<th>名称</th>
+			<th>大小</th>
+			<th>股本</th>
+			<th>股价</th>
+			<th>市值</th>
+			<th>静态PE</th>
+			<th>动态PE</th>
+			<th>PB</th>
+			<th>收入</th>
+			<th>行业</th>
+			<th>主营业务</th>
+			<th>概念</th>
+		</tr>
+	</thead>
+<tbody>
+{% for baseinfo in baseinfos %}
+<tr>
+	<td> {{baseinfo.stock_id}} </td>
+	<td> {{baseinfo.stock_name}} </td>
+	<td> {{baseinfo.stock_type}} </td>
+	<td> {{baseinfo.total_capital}} 亿 </td>
+	<td> {{baseinfo.now_price}} 元 </td>
+	<td> {{baseinfo.total_value}} 亿 </td>
+	<td> {{baseinfo.pe_ratio_static}} </td>
+	<td> {{baseinfo.pe_ratio_dynamic}} </td>
+	<td> {{baseinfo.pb}} </td>
+	<td> {{baseinfo.income}} </td>
+	<td> {{baseinfo.industry}} </td>
+	<td> {{baseinfo.main_busyness}} </td>
+	<td> {{baseinfo.concept}} </td>
+</tr>
+</tbody>
+{% endfor %}
+</table>
+</div>
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '/stock/list') }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
