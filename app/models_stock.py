@@ -4,13 +4,15 @@ from ystockquote import get_historical_prices
 from sqlalchemy.exc import IntegrityError
 import time
 #from app.stock import data_parser
-#from app.stock.stock_crawler_chn import data_parser as dp2
+#from app.stock.stock_crawler_chn import data_parser
+#from app.exceptions import ValidationError
+from app.stock.tools import *
 import urllib2
 
 red_color = '\033[;31;40m %s \033[0m'
 green_color = '\033[;32;40m %s \033[0m'
 
-def data_parser(data):
+'''def data_parser(data):
     """
     return a dict:
     key is a tuple (stock_id, date, time)
@@ -57,7 +59,7 @@ def data_parser(data):
 
         ret[key] = value
     return ret
-
+'''
 
 class Stock(db.Model):
     __tablename__ = 'stock'
