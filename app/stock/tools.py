@@ -8,7 +8,7 @@ TOT_PARAMS = 33
 
 
 from datetime import datetime,timedelta
-import os
+import os, time
 
 def data_parser(data):
     """
@@ -127,7 +127,9 @@ def get_beijing_time():
 
 
 def is_trade_time():
-    return True
+    today = int(time.strftime("%w"))
+    if today ==0 or today == 6: return False
+    #return True
     current_beijing_hms = get_beijing_time().strftime('%H:%M:%S')
     if current_beijing_hms < '09:25:00':
         return False
