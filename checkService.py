@@ -56,7 +56,7 @@ if __name__ == '__main__':
     #if IsOpen('127.0.0.1',8000) != True:
     #    runPyService(\
     #    os.path.dirname(os.path.abspath(__file__)) + '/yourpyfile.py')
-    #logging.info('start check')
+    logging.info('start check')
     checkService('crawler')
     checkService('notify')
 
