@@ -102,6 +102,13 @@ def baseinfo():
     from app.stock import stock_notify
     stock_notify.get_all_baseinfo()
 
+@manager.command
+def baseinfo_update():
+    """Run baseinfo stock. """
+    from app.stock import xueqiu
+    xueqiu.login()
+    xueqiu.daily_update_baseinfo()
+
 
 if __name__ == '__main__':
     manager.run()
