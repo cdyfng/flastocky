@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 PAGESIZE = 700
 WEB_TIME_OUT = 5
-DM_TIME_OUT = 10
+DM_TIME_OUT = 5
 
 import urllib2
 import time
@@ -29,7 +29,7 @@ class sqlite_db_manager():
         from sqlalchemy.exc import IntegrityError
         #global DATA_DIR
         #global DB_NAME
-        #global DM_TIME_OUT
+        global DM_TIME_OUT
         #global CREATE_TABLE_SQL
         #global INSERT_SQL
 
@@ -55,19 +55,26 @@ class sqlite_db_manager():
             #except Exception, e:
             #    print e
 
+            data = ''
             try:
-                print self.io_queue.qsize()
-                data = self.io_queue.get(True, DM_TIME_OUT)
-                print 'data get ok'
+                print 'before', self.io_queue.qsize()
+                #data = self.io_queue.get(True, DM_TIME_OUT)
+                data = self.io_queue.get(True, 5)
+                #print 'data get ok' ,  DM_TIME_OUT
+                print 'after', self.io_queue.qsize()
             except KeyboardInterrupt, e:
                  print e
-            except:
+            except Exception, e:
+                print e
                 print self.name, 'Data queue is empty. Still wait ...', time.ctime()
                 continue
 
-            print 'data save in db'
+            print 'data save in db',time.ctime()
+
+            #continue
             try:
                 #post_data = []
+                timestamp = ''
 
                 for item in data:
                   #with app.app_context:
@@ -89,12 +96,13 @@ class sqlite_db_manager():
                     #print item[0], timestamp, value[0:5]
                     self.db_ctx.session.add(stock)
                 #global db
-                print self.db_ctx
+                print self.db_ctx, timestamp
                 try:
                     self.db_ctx.session.commit()
                 except IntegrityError, e:
                     print e
                     self.db_ctx.session.rollback()
+                print time.ctime()
 
                 #insert = INSERT_SQL.replace('_TABLENAME_', table_name)
                 #self.cursor.executemany(insert, tuple(post_data))
