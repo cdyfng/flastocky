@@ -35,16 +35,26 @@ def runPyService(pyname):
 def isRunning(cmd):
     pids = psutil.pids()
     for pid in pids:
-        if cmd in str(psutil.Process(pid).cmdline()):
+        p = psutil.Process(pid)
+        if cmd in str(p.cmdline()):
+            logging.info('%s :%s' %(cmd,p.status()))
+            mem_percent = p.memory_percent()
+            if mem_percent > 25.0:
+                p.kill()
+                logging.info('percent :%f' % mem_percent)
+                return False
             return pid
     return False
 
 
 def checkService(arg2):
+    #logging.info('CS in %s', str(arg2))
     if isRunning(arg2) == False:
+        logging.info('not running')
         INTERPRETER = "/usr/bin/python"
         if not os.path.exists(INTERPRETER):
             print "Cannot find INTERPRETER at path \"%s\"." % INTERPRETER
+            logging.info('no interppeter')
         processor = os.path.dirname(os.path.abspath(__file__)) \
             + '/manage.py'
         pargs = [INTERPRETER, processor, arg2]
