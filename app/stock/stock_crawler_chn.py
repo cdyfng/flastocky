@@ -160,7 +160,8 @@ class sub_crawler(threading.Thread):
             print 'data put'
             self.io_queue.put(data)
             print 'data put ok'
-            time.sleep(30)
+            t = 60 if self.io_queue.qsize() <= 4 else 120
+            time.sleep(t)
         print self.name, 'is finished.'
     def stop(self):
         print 'Try to stop', self.name, '...'
