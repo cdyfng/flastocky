@@ -30,6 +30,18 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+
+        #file logging
+        import logging
+        from logging.handlers import RotatingFileHandler
+        file =  os.path.join(basedir, 'Dev.log')
+        file_handler = RotatingFileHandler(file)
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
 
 class TestingConfig(Config):
     TESTING = True
