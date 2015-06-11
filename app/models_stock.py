@@ -7,59 +7,11 @@ import time
 #from app.stock.stock_crawler_chn import data_parser
 #from app.exceptions import ValidationError
 from app.stock.tools import *
+from app.stock.reminder import *
 import urllib2
 
 red_color = '\033[;31;40m %s \033[0m'
 green_color = '\033[;32;40m %s \033[0m'
-
-'''def data_parser(data):
-    """
-    return a dict:
-    key is a tuple (stock_id, date, time)
-    value is a tuple contains parameters in the following order
-    (
-        open_price, yesterday_closing_price,
-        now_price, high_price, low_price,
-        now_buy_price, now_sell_price, #same as buy_1_price and sell_1_price
-        volume, amount,
-        buy_1_vol, buy_1_price,
-        buy_2_vol, buy_2_price,
-        buy_3_vol, buy_3_price,
-        buy_4_vol, buy_4_price,
-        buy_5_vol, buy_5_price,
-        sell_1_vol, sell_1_price,
-        sell_2_vol, sell_2_price,
-        sell_3_vol, sell_3_price,
-        sell_4_vol, sell_4_price,
-        sell_5_vol, sell_5_price
-    )
-    """
-    TOT_PARAMS = 33
-    ret = dict()
-    lines = data.split('\n')
-    for line in lines:
-
-        eq_pos = line.find('=')
-        if eq_pos == -1:
-            continue
-
-        params_seg = line[eq_pos + 2:-1]
-        params = params_seg.split(',')
-        if len(params) != TOT_PARAMS:
-            continue
-
-        stock_id_seg = line[:eq_pos]
-        stock_id = stock_id_seg[stock_id_seg.rfind('_') + 1:]
-        date = params[30]
-        time = params[31]
-        #params[32] is nothing
-        key = (stock_id, date, time)
-
-        value = tuple(params[1:30])
-
-        ret[key] = value
-    return ret
-'''
 
 class Stock(db.Model):
     __tablename__ = 'stock'
@@ -82,6 +34,15 @@ class Stock(db.Model):
         '''get data from sina and save in db'''
         pass
 
+    @staticmethod
+    def on_change_price(target, value, oldvalue, initiator):
+        #print 'value %f, oldvalue %f' % (value, oldvalue)
+        #print target.stock_id
+        #print macro_arg
+        Reminder.run(target.stock_id, value)
+
+
+db.event.listen(Stock.now_price, 'set', Stock.on_change_price)
 
 class Baseinfo(db.Model):
     __tablename__ = 'baseinfo'
@@ -147,8 +108,8 @@ class StockHistory(db.Model):
         all_start = time.time()
         print len(stocks)
         for stock in stocks:
-            sh = StockHistory.query.filter_by\
-                (stock_id = stock).first()
+            sh = StockHistory.query.filter_by(stock_id = stock)\
+                .filter_by(date='2015-06-08').first()
             if sh is not None:
                 print '%s already in' % stock
                 continue
