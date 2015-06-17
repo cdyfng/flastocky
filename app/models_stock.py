@@ -28,6 +28,10 @@ class Stock(db.Model):
     def __repr__(self):
         return '<Stock %r %r>' % (self.stock_id, self.timestamp)
 
+    def to_string(self):
+        return '%s %s %f %f %f %f %f' % (self.stock_id, self.timestamp, \
+                self.open_price, self.yesterday_closing_price, \
+                self.now_price, self.high_price, self.low_price)
 
     @staticmethod
     def bg_running(self):
@@ -39,8 +43,10 @@ class Stock(db.Model):
         #print 'value %f, oldvalue %f' % (value, oldvalue)
         #print target.stock_id
         #print macro_arg
-        Reminder.run(target.stock_id, value)
-
+        try:
+            Reminder.run(target, value)
+        except Exception as e:
+            print e
 
 db.event.listen(Stock.now_price, 'set', Stock.on_change_price)
 
@@ -78,6 +84,14 @@ class Baseinfo(db.Model):
         for bi in baseinfos:
             stocks.append(str(bi.stock_id))
         return stocks
+
+    @staticmethod
+    def get_id_name_dict():
+        d = {}
+        baseinfos = Baseinfo.query.all()
+        for bi in baseinfos:
+            d[bi.stock_id] = bi.stock_name
+        return d
 
 
 class StockHistory(db.Model):

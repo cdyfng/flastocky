@@ -1,5 +1,6 @@
 import re, os, thread
 import warningEmail
+from flask import current_app
 
 class Notify():
     def __init__(self, stock_id, price_interval_percent, \
@@ -75,6 +76,12 @@ class Notify():
 
 class Reminder():
     Rmds = []
+    RiseTop = {}
+    RiseTopOpen = {}
+    FallBottom = {}
+    FallBottomOpen = {}
+    id_name_dict = None
+
     def __init__(self):
         #Reminder.Rmds = []
         if(len(Reminder.Rmds) == 0):
@@ -82,7 +89,12 @@ class Reminder():
             #check if 0 again
             if(len(Reminder.Rmds) == 0):
                 print 'config file import error'
-		Reminder.Rmds.append(Notify('null',0,0,0))
+                Reminder.Rmds.append(Notify('null',0,0,0))
+
+        if Reminder.id_name_dict == None:
+            from ..models_stock import Baseinfo
+            Reminder.id_name_dict = Baseinfo.get_id_name_dict()
+            current_app._logger.info('get stock_id stock_name dict ok')
 
     def add(self, item):
         self.remove(item)
@@ -93,12 +105,61 @@ class Reminder():
             Reminder.Rmds.remove(item)
 
     @staticmethod
-    def run(stock_id, now_price):
+    def run(target, now_price):
         if(len(Reminder.Rmds) == 0):
             r = Reminder()
+        #if target.yesterday_closing_price
+        riseLimit = target.yesterday_closing_price * 1.1
+        fallLimit = target.yesterday_closing_price * 0.9
+        s = '%s %f %f %f %f %f %f'% (target.stock_id, \
+            target.yesterday_closing_price, \
+            now_price, target.high_price, target.low_price, \
+            riseLimit, fallLimit)
+        print s
+        if target.high_price >= riseLimit:
+            if Reminder.RiseTop.get(target.stock_id) is None:
+                #current_app._logger.info(s)
+                s = '%s %s %f riseTop first add' % \
+                    (target.stock_id, \
+                     Reminder.id_name_dict[target.stock_id], \
+                     now_price)
+                current_app._logger.info(s)
+            Reminder.RiseTop[target.stock_id] = [now_price,]
+            if now_price < target.high_price:
+                if Reminder.RiseTopOpen.get(target.stock_id) is None:
+                    s = '%s %s %f riseTopOpen first add' % \
+                    (target.stock_id, \
+                     Reminder.id_name_dict[target.stock_id], \
+                     now_price)
+                    current_app._logger.info(s)
+                Reminder.RiseTopOpen[target.stock_id]=[now_price,]
+
+        if target.low_price <= fallLimit:
+            if Reminder.FallBottom.get(target.stock_id) is None:
+                #current_app._logger.info(s)
+                s = '%s %s %f FallBottom first add' % \
+                    (target.stock_id, \
+                     Reminder.id_name_dict[target.stock_id], \
+                     now_price)
+                current_app._logger.info(s)
+            Reminder.FallBottom[target.stock_id] = [now_price,]
+            if now_price > target.low_price:
+                if Reminder.FallBottomOpen.get(target.stock_id) is None:
+                    s = '%s %s %f FallBottomOpen first add' % \
+                        (target.stock_id, \
+                         Reminder.id_name_dict[target.stock_id], \
+                         now_price)
+                    current_app._logger.info(s)
+                Reminder.FallBottomOpen[target.stock_id]=[now_price,]
+
+
+
+        #remind price change when it satisfy the notify remind
         for notify in Reminder.Rmds:
-            if notify.stock_id == stock_id:
+            if notify.stock_id == target.stock_id:
                 notify.run(now_price)
+
+        #remind the stock when
 
     def __repr__(self):
         s = ''

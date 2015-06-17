@@ -39,6 +39,9 @@ class DevelopmentConfig(Config):
         from logging.handlers import RotatingFileHandler
         file =  os.path.join(basedir, 'Dev.log')
         file_handler = RotatingFileHandler(file)
+        formatter = logging.Formatter('%(asctime)s %(message)s',
+                                      datefmt='%m-%d %H:%M:%S')
+        file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
 
