@@ -85,6 +85,8 @@ class sqlite_db_manager():
                     #content.extend(list(data[item]))
                     #post_data.append(tuple(content))
                     value = list(data[item])
+                    if float(value[2]) == 0:
+                        continue
                     stock = Stock(stock_id = item[0],
                                   timestamp = timestamp,
                                   open_price = float(value[0]),
