@@ -1,6 +1,7 @@
 import re, os, thread
 import warningEmail
 from flask import current_app
+from .. import db
 
 class Notify():
     def __init__(self, stock_id, price_interval_percent, \
@@ -69,7 +70,6 @@ class Notify():
                     (n.stock_id, n.base_price, n.bench_price)
         saveStocks(stocks)
 
-
     def __repr__(self):
         return '%s %f' % (self.stock_id, self.bench_price)
 
@@ -95,6 +95,18 @@ class Reminder():
             from ..models_stock import Baseinfo
             Reminder.id_name_dict = Baseinfo.get_id_name_dict()
             current_app._logger.info('get stock_id stock_name dict ok')
+            #init stock realtime info from db.RealtimeInfo
+            from ..models_stock import RealtimeInfo
+            rtis = RealtimeInfo.init_daily()
+            for rti in rtis:
+                if rti.riseTop == True:
+                    Reminder.RiseTop[rti.stock_id] = [9.9,]
+                if rti.riseTopOpen == True:
+                    Reminder.RiseTopOpen[rti.stock_id] = [9.9,]
+                if rti.fallBottom == True:
+                    Reminder.FallBottom[rti.stock_id] = [9.9,]
+                if rti.fallBottomOpen == True:
+                    Reminder.FallBottomOpen[rti.stock_id] = [9.9,]
 
     def add(self, item):
         self.remove(item)
@@ -106,6 +118,9 @@ class Reminder():
 
     @staticmethod
     def run(target, now_price):
+        from ..models_stock import RealtimeInfo
+        from sqlalchemy.exc import IntegrityError
+        db_commit = False
         if(len(Reminder.Rmds) == 0):
             r = Reminder()
         #if target.yesterday_closing_price
@@ -124,6 +139,10 @@ class Reminder():
                      Reminder.id_name_dict[target.stock_id], \
                      now_price)
                 current_app._logger.info(s)
+                rti = RealtimeInfo(stock_id=target.stock_id,
+                                   riseTop=True)
+                db.session.add(rti)
+                db_commit = True
             Reminder.RiseTop[target.stock_id] = [now_price,]
             if now_price < target.high_price:
                 if Reminder.RiseTopOpen.get(target.stock_id) is None:
@@ -132,6 +151,10 @@ class Reminder():
                      Reminder.id_name_dict[target.stock_id], \
                      now_price)
                     current_app._logger.info(s)
+                    rti = RealtimeInfo(stock_id=target.stock_id,
+                                       riseTopOpen=True)
+                    db.session.add(rti)
+                    db_commit = True
                 Reminder.RiseTopOpen[target.stock_id]=[now_price,]
 
         if target.low_price <= fallLimit:
@@ -142,6 +165,10 @@ class Reminder():
                      Reminder.id_name_dict[target.stock_id], \
                      now_price)
                 current_app._logger.info(s)
+                rti = RealtimeInfo(stock_id=target.stock_id,
+                                   fallBottom=True)
+                db.session.add(rti)
+                db_commit = True
             Reminder.FallBottom[target.stock_id] = [now_price,]
             if now_price > target.low_price:
                 if Reminder.FallBottomOpen.get(target.stock_id) is None:
@@ -150,14 +177,24 @@ class Reminder():
                          Reminder.id_name_dict[target.stock_id], \
                          now_price)
                     current_app._logger.info(s)
+                    rti = RealtimeInfo(stock_id=target.stock_id,
+                                       fallBottomOpen=True)
+                    db.session.add(rti)
+                    db_commit = True
                 Reminder.FallBottomOpen[target.stock_id]=[now_price,]
 
-
+        if db_commit == True:
+            try:
+                db.session.commit()
+            except IntegrityError, e:
+                db.session.rollback()
+                current_app._logger.info('%s', e)
 
         #remind price change when it satisfy the notify remind
         for notify in Reminder.Rmds:
             if notify.stock_id == target.stock_id:
                 notify.run(now_price)
+                #print 'skip %s notify' % notify.stock_id
 
         #remind the stock when
 
@@ -166,6 +203,7 @@ class Reminder():
         for item in Reminder.Rmds:
             s = ''.join([s, '%s %f \n' % (item.stock_id, item.bench_price)])
         return s
+
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 def readStocks():

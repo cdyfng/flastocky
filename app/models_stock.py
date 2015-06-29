@@ -50,6 +50,7 @@ class Stock(db.Model):
 
 db.event.listen(Stock.now_price, 'set', Stock.on_change_price)
 
+
 class Baseinfo(db.Model):
     __tablename__ = 'baseinfo'
     #id = db.Column(db.Integer, primary_key=True)
@@ -257,5 +258,33 @@ class StockHistory(db.Model):
         print '\n', shs[0].date, shs[0].open
         print  shs[days-1].date, shs[days-1].open
         return shs
+
+
+class RealtimeInfo(db.Model):
+    __tablename__ = 'realtimeinfo'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_id = db.Column(db.String(10), \
+                         db.ForeignKey('baseinfo.stock_id'))
+    timestamp = db.Column(db.String(20), default=datetime.now)
+    riseTop = db.Column(db.Boolean, default=False)
+    riseTopOpen = db.Column(db.Boolean, default=False)
+    fallBottom = db.Column(db.Boolean, default=False)
+    fallBottomOpen = db.Column(db.Boolean, default=False)
+    extra1 = db.Column(db.Boolean, default=False)
+    extra2 = db.Column(db.Boolean, default=False)
+    extra3 = db.Column(db.Boolean, default=False)
+    __table_args__ = (\
+        db.UniqueConstraint('stock_id', 'timestamp'),)
+
+    def __repr__(self):
+        return '<realtimeinfo %r %r>' % (self.stock_id, self.timestamp)
+
+    @staticmethod
+    def init_daily(today=(str(datetime.now()))[0:10]):
+        '''
+        return today's recoder when initial
+        '''
+        return RealtimeInfo.query.filter\
+            (RealtimeInfo.timestamp.like(today + '%')).all()
 
 
