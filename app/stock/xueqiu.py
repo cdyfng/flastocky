@@ -123,11 +123,12 @@ def daily_update_baseinfo():
     stocks = list(set(stocks_now) - set(stocks_pre))
     start_time = time.time()
     #stocks = [u'sh603030',]
+    print len(stocks)
     for stock in stocks:
         #新股票代码取基本面信息存入数据库
-	#print type(stock)
-	stock = str(stock)
-	#print type(stock)
+        #print type(stock)
+        stock = str(stock)
+        #print type(stock)
         try:
             each_start_time = time.time()
             seprator = '-' * 40
@@ -191,6 +192,8 @@ def daily_update_baseinfo():
             bi.stock_name = item['name']
             bi.now_price = float(item['current'])
             bi.total_value = float(item['marketcapital'])/1000000000
+            bi.low52w = float(item['low52w'])
+            bi.high52w = float(item['high52w'])
             try:
                 db.session.add(bi)
                 db.session.commit()

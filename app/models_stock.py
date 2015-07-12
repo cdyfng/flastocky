@@ -69,6 +69,8 @@ class Baseinfo(db.Model):
     concept = db.Column(db.UnicodeText)
     now_price = db.Column(db.Float)
     volumn = db.Column(db.Float)
+    high52w = db.Column(db.Float)
+    low52w = db.Column(db.Float)
     __table_args__ = (\
         db.UniqueConstraint('stock_id', 'pe_ratio_static', \
                             'pe_ratio_dynamic', 'pb'),)
@@ -278,6 +280,28 @@ class RealtimeInfo(db.Model):
 
     def __repr__(self):
         return '<realtimeinfo %r %r>' % (self.stock_id, self.timestamp)
+
+    @staticmethod
+    def init_daily(today=(str(datetime.now()))[0:10]):
+        '''
+        return today's recoder when initial
+        '''
+        return RealtimeInfo.query.filter\
+            (RealtimeInfo.timestamp.like(today + '%')).all()
+
+
+class SimulateTrade(db.Model):
+    __tablename__ = 'smlt_trade'
+    id = db.Column(db.Integer, primary_key=True)
+    trade_name = db.Column(db.String(20))
+    net_value = db.Column(db.Float)
+    starttime = db.Column(db.String(20), default=datetime.now)
+    lasttime = db.Column(db.String(20), default=datetime.now)
+    stock_id = db.Column(db.String(10), \
+                         db.ForeignKey('baseinfo.stock_id'))
+
+    def __repr__(self):
+        return '<simulateTrade %r %r>' % (self.trade_name, self.net_value)
 
     @staticmethod
     def init_daily(today=(str(datetime.now()))[0:10]):
