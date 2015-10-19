@@ -68,7 +68,7 @@ if __name__ == '__main__':
     #    os.path.dirname(os.path.abspath(__file__)) + '/yourpyfile.py')
     #logging.info('start check')
     checkService('crawler')
-    checkService('notify')
+    #checkService('notify')
 
 
 

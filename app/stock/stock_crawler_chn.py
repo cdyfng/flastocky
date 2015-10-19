@@ -9,6 +9,7 @@ import time
 import threading
 from sqlalchemy.exc import IntegrityError
 import Queue
+from flask import current_app
 from ..models_stock import Stock, Baseinfo
 from .. import db
 from . import stock
@@ -70,6 +71,8 @@ class sqlite_db_manager():
                 continue
 
             print 'data save in db',time.ctime()
+            current_app._logger.info('data save in db, now time: %s'% time.ctime())
+            current_app._logger.info('data queue size %d' % self.io_queue.qsize())
 
             #continue
             try:
@@ -162,6 +165,9 @@ class sub_crawler(threading.Thread):
             print 'data put'
             self.io_queue.put(data)
             print 'data put ok'
+            s = str(self.io_queue.qsize()) + time.ctime()
+            #print s
+            #current_app._logger.info("test in ")
             t = 60 if self.io_queue.qsize() <= 4 else 120
             time.sleep(t)
         print self.name, 'is finished.'

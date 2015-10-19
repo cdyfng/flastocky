@@ -130,7 +130,7 @@ class Reminder():
             target.yesterday_closing_price, \
             now_price, target.high_price, target.low_price, \
             riseLimit, fallLimit)
-        print s
+        #print s
         if target.high_price >= riseLimit:
             if Reminder.RiseTop.get(target.stock_id) is None:
                 #current_app._logger.info(s)
