@@ -15,6 +15,7 @@ if os.path.exists('.env'):
 
 from app import create_app, db
 from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models_quanter import BacktestingLog
 #from app.models_stock import Stock, Baseinfo, StockHistory
 from flask.ext.script import Manager, Shell
 from flask.ext.migrate import Migrate, MigrateCommand
@@ -108,6 +109,12 @@ def baseinfo_update():
     from app.stock import xueqiu
     xueqiu.login()
     xueqiu.daily_update_baseinfo()
+
+@manager.command
+def quanter_bolling():
+    """Run quant bolling of all stocks. """
+    from app.quanter import firstOnlyWorker
+    firstOnlyWorker.main()
 
 
 if __name__ == '__main__':
