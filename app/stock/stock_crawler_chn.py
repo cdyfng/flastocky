@@ -25,6 +25,7 @@ class sqlite_db_manager():
         self.db_ctx = db_ctx
         print 'self db_ctx', self.db_ctx
         print 'db_ctx', db_ctx
+        db.create_all()
 
     def run(self):
         from sqlalchemy.exc import IntegrityError

@@ -14,7 +14,7 @@ red_color = '\033[;31;40m %s \033[0m'
 green_color = '\033[;32;40m %s \033[0m'
 
 class Stock(db.Model):
-    __tablename__ = 'stock'
+    __tablename__ = 'stock_' + datetime.now().strftime('%Y%m')
     id = db.Column(db.Integer, primary_key=True)
     stock_id = db.Column(db.String(10))
     timestamp = db.Column(db.String(20))
