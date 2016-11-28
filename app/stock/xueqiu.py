@@ -123,12 +123,13 @@ def daily_update_baseinfo():
     stocks = list(set(stocks_now) - set(stocks_pre))
     start_time = time.time()
     #stocks = [u'sh603030',]
-    print len(stocks)
+    print "stocks num :", len(stocks)
     for stock in stocks:
         #新股票代码取基本面信息存入数据库
         #print type(stock)
         stock = str(stock)
         #print type(stock)
+        #print stock
         try:
             each_start_time = time.time()
             seprator = '-' * 40
@@ -148,6 +149,8 @@ def daily_update_baseinfo():
             #   info['industry'].encode('utf-8'), \
             #      info['main_busyness'].encode('utf-8'),
             #   info['concept'].encode('utf-8'), seprator)
+            info['concept'] = ""
+
             base_info = \
                 Baseinfo(stock_id=stock, stock_type=info['type'],\
                          total_capital=info['total_capital'],\
@@ -155,7 +158,7 @@ def daily_update_baseinfo():
                          pe_ratio_dynamic=info['pe_ratio_dynamic'],\
                          pb=info['pb'],income=info['income'],\
                          industry=info['industry'],\
-                         main_busyness=info['main_busyness'],\
+                         main_busyness=info['main_busyness'], \
                          concept=info['concept'])
             strInfo =  info['code'] + info['industry'] + \
                 info['concept'] + info['main_busyness']

@@ -234,8 +234,10 @@ def stock_base_info(code):
                 stock_dict["main_busyness"] = td_select_value(td)
             elif i == 1:    # 所属行业：
                 stock_dict["industry"] = td_select_value(td)
-            elif i == 2:    # 涉及概念：
-                stock_dict["concept"] = td_select_value(td)
+
+        # delete i==2 because of page change , -> error run
+        # elif i == 2:    # 涉及概念：
+        # stock_dict["concept"] = td_select_value(td)
 
         table = profile[0].select('table')[1]
         td_list = table.select('td')
